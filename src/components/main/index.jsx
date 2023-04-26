@@ -1,36 +1,14 @@
-import { useRef, useState, useId } from "react";
-import { Group, Layer, Line, Rect, Stage } from "react-konva";
+import { useRef, useState } from "react";
+import { Circle, Group, Layer, Line, Stage } from "react-konva";
 import styled from "styled-components";
-import { Html } from 'react-konva-utils';
-import KonvaEditableTextInput from "./KonvaEditableTextInput";
-import EntityBlock from "./EntityBlock";
 import { v4 as uuidv4 } from 'uuid';
 
+import EntityBlock from "../konva/EntityBlock";
+import ToolsBar from './SideBar'
 
 const Container = styled.div`
   display: flex;
   height: 100%;
-`
-
-const SideBar = styled.div`
-  flex-basis: 200px;
-  background-color: white;
-  height: 100vh;
-  box-sizing: border-box;
-  box-shadow: 20px 0px 22px -18px rgba(0,0,0,0.1);
-  z-index: 1;
-  padding: 10px;
-`
-
-const SideContent = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-gap: 10px;
-  grid-auto-rows: 100px;
-`
-
-const SideElement = styled.div`
-  border: 1px solid black;
 `
 
 const Canvas = styled.div`
@@ -39,26 +17,25 @@ const Canvas = styled.div`
   flex-grow: 1;
 `
 
-function MyComponent () {
+function DiagramBuilder () {
   const stageRef = useRef(null);
 
-  const [shapes, setShapes] = useState([]);
+  const [rects, setRects] = useState([]);
+  const [circles, setCircles] = useState([]);
   const [lines, setLines] = useState([]);
 
   const [selected, setSelected] = useState(null);
   const [line, setLine] = useState(null);
   const [hovered, setHovered] = useState(null);
 
-  const size = {
-    width: 180,
-    height: 200
-  };
+  const size = {width: 180, height: 200};
+  const radius = 100;
 
   const onMouseDown = (e) => {
     const clickedOnEmpty = e.target === e.target.getStage();
     
-    if(selected) {
-      if (clickedOnEmpty) setSelected(null);
+    if(selected && clickedOnEmpty) {
+      setSelected(null);
       return;
     }
 
@@ -84,7 +61,7 @@ function MyComponent () {
     }
   }
 
-  const onMouseUp = (e) => {
+  const onMouseUp = (_) => {
     if(hovered) {
       setLines([...lines, {points: [line.from.x, line.from.y, line.to.x, line.to.y]}])
     }
@@ -106,21 +83,25 @@ function MyComponent () {
     }
   }
 
-  const onMouseOut = (e) => {
-    if(!line || !hovered) return;
-
-    if(e.target.hasName('entity')) {
-    }
-  }
-
   const onDrop = (e) => {
     e.preventDefault();
-    stageRef.current.setPointersPositions(e);
-    setShapes([...shapes, {id: uuidv4(), ...stageRef.current.getPointerPosition()}])
-  }
+    
+    const type = e.dataTransfer.getData("type");
 
-  const onSelect = (id) => {
-    setSelected(id);
+    stageRef.current.setPointersPositions(e);
+
+    const data = {id: uuidv4(), ...stageRef.current.getPointerPosition()};
+    
+    switch(type) {
+      case "rect":
+        setRects([...rects, data])
+        break
+      case "circle":
+        setCircles([...circles, data])
+        break
+      default:
+        return;
+    }
   }
 
   function collides(rect, point) {
@@ -128,28 +109,13 @@ function MyComponent () {
     const max = {x: rect.x + rect.width, y: rect.y + rect.height};
 
     return (point.x > min.x && point.y > min.y) && (point.x < max.x && point.y < max.y);
-
-    // return !(
-    //   r2.x > r1.x + r1.width ||
-    //   r2.x + r2.width < r1.x ||
-    //   r2.y > r1.y + r1.height ||
-    //   r2.y + r2.height < r1.y
-    // );
   }
+
 
   return(
     <Container>
-      <SideBar>
-        <SideContent>
-          <SideElement draggable="true" />
-          <SideElement />
-          <SideElement />
-          <SideElement />
-          <SideElement />
-          <SideElement />
-        </SideContent>
-      </SideBar>
-      
+      <ToolsBar />
+
       <Canvas 
         onDrop={onDrop} 
         onDragOver={(e) => e.preventDefault()}
@@ -162,18 +128,17 @@ function MyComponent () {
           onMouseMove={onMouseMove}
           onMouseUp={onMouseUp}
           onMouseOver={onMouseOver}
-          onMouseOut={onMouseOut}
         > 
           <Layer>
             {
-              shapes.map((shape, index) => {
+              rects.map((rect, index) => {
                 return <Group
-                  x={shape.x - size.width / 2}
-                  y={shape.y - size.height / 2}
-                  key={`group-${index}`}
+                  x={rect.x - size.width / 2}
+                  y={rect.y - size.height / 2}
+                  key={rect.id}
                 >
                   <EntityBlock 
-                    id={shape.id}
+                    id={rect.id}
                     width={size.width}
                     height={size.height}
                     fill="white"
@@ -183,17 +148,38 @@ function MyComponent () {
                     draggable="true"
                     strokeWidth={0.25}
                     stroke="black"
-                    onSelect={() => onSelect(shape.id)}
-                    selected={shape.id == selected}
+                    onSelect={() => setSelected(rect.id)}
+                    selected={rect.id === selected}
                   />
                   
-                  <KonvaEditableTextInput 
+                  {/* <KonvaEditableTextInput 
                     x={0}
                     y={0}
                     value={"Title"}
                     width={100}
                     height={100}
                     onChange={(value) => {}}
+                  /> */}
+                </Group>
+              })
+            }
+
+            {
+              circles.map((circle, index) => {
+                return <Group
+                  x={circle.x}
+                  y={circle.y}
+                  key={circle.id}
+                >
+                  <Circle
+                    radius={radius}
+                    fill="white"
+                    shadowBlur={8}
+                    shadowOpacity={0.1}
+                    cornerRadius={8.0}
+                    draggable="true"
+                    strokeWidth={0.25}
+                    stroke="black"
                   />
                 </Group>
               })
@@ -223,4 +209,4 @@ function MyComponent () {
   )
 }
 
-export default MyComponent;
+export default DiagramBuilder;
