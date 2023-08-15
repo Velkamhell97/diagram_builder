@@ -23,7 +23,9 @@ const SideElement = styled.div`
   border: 1px solid black;
 `
 
-function ToolsBar() {
+function ToolsBar({
+  onClickEntity
+}) {
   const onDragStart = (e, type) => {
     e.dataTransfer.setData("type", type)
   }
@@ -34,6 +36,7 @@ function ToolsBar() {
         <SideElement 
           draggable="true" 
           onDragStart={(e) => onDragStart(e, "rect")}
+          onClick={onClickEntity}
         > 
           <CanvasShape />
         </SideElement>

@@ -1,6 +1,6 @@
 import React from "react";
 import { ResizableText } from "./ResizableText";
-import { EditableTextInput } from "./EditableTextInput";
+import { KonvaEditableTextInput  } from "./KonvaEditableTextInput";
 
 const RETURN_KEY = 13;
 const ESCAPE_KEY = 27;
@@ -30,7 +30,7 @@ export function EditableText({
 
   if (isEditing) {
     return (
-      <EditableTextInput
+      <KonvaEditableTextInput
         x={x}
         y={y}
         width={width}

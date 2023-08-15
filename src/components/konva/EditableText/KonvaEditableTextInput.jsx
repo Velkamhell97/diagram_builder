@@ -32,7 +32,7 @@ const TextArea = styled.textarea`
   resize: none;
 `
 
-function KonvaEditableTextInput({
+export function KonvaEditableTextInput({
   x,
   y,
   width,
@@ -47,12 +47,11 @@ function KonvaEditableTextInput({
       <TextArea
         width={width}
         height={height}
-        placeholder="Title"
+        // placeholder="Title"
+        style={{cursor: 'pointer'}}
         onChange={onChange}
         onKeyDown={onKeyDown}
       />
     </Html>
   );
 }
-
-export default KonvaEditableTextInput;
