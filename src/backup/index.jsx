@@ -240,24 +240,80 @@ function DiagramBuilder () {
           
           {/* Enties */}
           <Layer>
-            <EntityBlock 
-              id="entidad1"
-              entity={{
-                name: "Tabla 1",
-                fields: [
-                  {
-                    name: "edad",
-                    type: "int"
-                  },
-                  {
-                    name: "nombre",
-                    type: "string"
-                  }
-                ]
-              }}
-              x={100}
-              y={100}
-            />
+          <EditableText 
+                    x={100}
+                    y={100}
+                    value={"Title"}
+                    width={100}
+                    height={100}
+                    onChange={(value) => {}}
+                  />
+
+            {
+              rects.map((rect, index) => {
+                return <Group
+                  x={rect.x - size.width / 2}
+                  y={rect.y - size.height / 2}
+                  key={rect.id}
+                  draggable="true"
+                >
+                  <EntityBlock 
+                    id={rect.id}
+                    width={size.width}
+                    height={size.height}
+                    fill="white"
+                    shadowBlur={8}
+                    shadowOpacity={0.1}
+                    cornerRadius={8.0}
+                    // draggable="true"
+                    strokeWidth={0.25}
+                    stroke="black"
+                    onSelect={() => setSelected(rect.id)}
+                    selected={rect.id === selected}
+                  />
+                  
+                  <KonvaEditableTextInput 
+                    x={0}
+                    y={0}
+                    text={"Hola Mundo"}
+                    width={100}
+                    height={100}
+                    onChange={(value) => {}}
+                  />
+                </Group>
+              })
+            }
+
+            {
+              circles.map((circle, index) => {
+                return <Group
+                  x={circle.x}
+                  y={circle.y}
+                  key={circle.id}
+                >
+                  <Circle
+                    radius={radius}
+                    fill="white"
+                    shadowBlur={8}
+                    shadowOpacity={0.1}
+                    cornerRadius={8.0}
+                    draggable="true"
+                    strokeWidth={0.25}
+                    stroke="black"
+                  />
+                </Group>
+              })
+            }
+
+            {lines.map((line, index) => {
+              return <Line
+                key={`line-${index}`}
+                stroke="red"
+                name="line"
+                strokeWidth={10}
+                points={line.points}
+              />
+            })}
 
             {/* {line && (
               <Line
