@@ -90,6 +90,8 @@ function EntityBlock({entity, ...props}) {
               width={nameFieldWidth - horizontalPadding}
               height={fieldHeight}
               fontSize={fieldFontSize}
+              strokeWidth={2}
+              strokeEnabled={true}
             />
 
             <Text 
