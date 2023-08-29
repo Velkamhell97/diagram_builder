@@ -1,4 +1,4 @@
-import { useRef, useState, useLayoutEffect, useMemo } from "react";
+import { useRef, useState, useMemo } from "react";
 import { Circle, Group, Layer, Line, Rect, Stage, Text } from "react-konva";
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
@@ -27,6 +27,7 @@ const Canvas = styled.div`
 `
 
 function DiagramBuilder () {
+  // Refs
   const stageRef = useRef(null);
 
   // Shapes
@@ -43,6 +44,7 @@ function DiagramBuilder () {
   const [showModal, setShowModal] = useState(false);
   const [entity, setEntity] = useState({'type': "string"});
   const [entities, setEntities] = useState([]);
+  const [entityFields, setEntityFields] = useState([]);
 
   const size = {width: 180, height: 200};
   const radius = 100;
@@ -84,6 +86,8 @@ function DiagramBuilder () {
   }, []);
 
   const closeModal = () => {
+    setEntity({});
+    setEntityFields([]);
     setShowModal(false);
   }
   
@@ -240,24 +244,18 @@ function DiagramBuilder () {
           
           {/* Enties */}
           <Layer>
-            <EntityBlock 
-              id="entidad1"
-              entity={{
-                name: "Tabla 1",
-                fields: [
-                  {
-                    name: "edad",
-                    type: "int"
-                  },
-                  {
-                    name: "nombre",
-                    type: "string"
-                  }
-                ]
-              }}
-              x={100}
-              y={100}
-            />
+            {
+              entities.map((entity) => {
+                return <EntityBlock
+                  key={entity.name} 
+                  id={entity.name}
+                  entity={entity}
+                  x={100}
+                  y={100}
+                />
+              })
+            }
+            
 
             {/* {line && (
               <Line
@@ -284,7 +282,9 @@ function DiagramBuilder () {
 
       <Modal show={showModal} onHide={closeModal} centered size="lg">
         <Modal.Header closeButton>
-          <Modal.Title>Nueva entidad</Modal.Title>
+         <Form.Control  style={{border: 0, boxShadow: "none", fontWeight: "bold", fontSize: 18}} autoFocus type="name" placeholder="Mi entidad" onChange={(event) => {
+            setEntity({...entity, 'name': event.target.value})
+          }} />
         </Modal.Header>
         <Modal.Body>
           <BContainer>
@@ -292,16 +292,16 @@ function DiagramBuilder () {
               <Col>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                   <Form.Label>Nombre del campo</Form.Label>
-                  <Form.Control type="name" placeholder="" onChange={(event) => {
-                    setEntity({...entity, 'name': event.target.value})
+                  <Form.Control value={entity.fieldName ?? ""} placeholder="" onChange={(event) => {
+                    setEntity({...entity, 'fieldName': event.target.value})
                   }} />
                 </Form.Group>
               </Col>
               <Col>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                   <Form.Label>Tipo</Form.Label>
-                  <Form.Select aria-label="Default select example" onChange={(event) => {
-                    setEntity({...entity, 'type': event.target.value})
+                  <Form.Select value={entity.fieldType ?? "string"} aria-label="Default select example" onChange={(event) => {
+                    setEntity({...entity, 'fieldType': event.target.value})
                   }}>
                     <option value="string" selected>String</option>
                     <option value="integer">Integer</option>
@@ -312,12 +312,13 @@ function DiagramBuilder () {
               <Col>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                   <Form.Label>Valor</Form.Label>
-                  <Form.Control type="value" placeholder="" onChange={(event) => {
-                    setEntity({...entity, 'value': event.target.value})
+                  <Form.Control value={entity.fieldValue ?? ""} type="value" placeholder="" onChange={(event) => {
+                    setEntity({...entity, 'fieldValue': event.target.value})
                   }} />
                 </Form.Group>
               </Col>
             </Row>
+            
           </BContainer>
 
           <BContainer>
@@ -333,16 +334,16 @@ function DiagramBuilder () {
               </Col>
             </Row>
             {
-              entities.map((entity) => {
+              entityFields.map((entityField) => {
                 return <Row>
                   <Col>
-                    {entity.name}
+                    {entityField.name}
                   </Col>
                   <Col>
-                    {entity.type}
+                    {entityField.type}
                   </Col>
                   <Col>
-                    {entity.value}
+                    {entityField.value}
                   </Col>
                 </Row>
               })
@@ -351,16 +352,30 @@ function DiagramBuilder () {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="primary" onClick={() => {
-            console.log(entity);
-            setEntities([...entities, {'name': entity.name, 'type': entity.type, 'value': entity.value}]);
-            setEntity({"type":"string"});
+            setEntityFields([
+              ...entityFields, 
+              {
+                'name': entity.fieldName,
+                'type': entity.fieldType ?? "string", 
+                'value': entity.fieldValue
+              }
+            ]);
+            setEntity({'name': entity.name});
           }}>
             Agregar atributo
           </Button>
           <Button variant="primary" onClick={() => {
+            setEntityFields([]);
+            setEntities([
+              ...entities, 
+              {
+                'name': entity.name,
+                'fields': entityFields
+              }
+            ])
             setShowModal(false);
           }}>
-            Guardar cambion
+            Guardar cambios
           </Button>
         </Modal.Footer>
       </Modal>
