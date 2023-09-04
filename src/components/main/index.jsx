@@ -44,11 +44,10 @@ function DiagramBuilder () {
   const [showModal, setShowModal] = useState(false);
   const [entity, setEntity] = useState({'type': "string"});
   const [entities, setEntities] = useState([]);
-  const [entityFields, setEntityFields] = useState([]);
   const [entityForm, setEntityForm] = useState({});
 
-  const size = {width: 180, height: 200};
-  const radius = 100;
+  // const size = {width: 180, height: 200};
+  // const radius = 100;
 
   const gap = 20.0;
   const xLines = [];
@@ -251,7 +250,6 @@ function DiagramBuilder () {
                   x={100} y={100}
                   onClick={() => {
                     setEntity(entity);
-                    setEntityFields(entity.fields);
                     setShowModal(true);
                   }}
                 />
@@ -345,6 +343,8 @@ function DiagramBuilder () {
             } else {
               setEntities([...entities, {...entity, 'id': uuidv4()}])
             }
+
+            setEntity({});
             
             setShowModal(false);
           }}>

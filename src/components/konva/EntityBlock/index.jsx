@@ -18,7 +18,7 @@ const titleHeight = headerHeight - horizontalPadding;
 const titleFontSize = headerHeight * 0.5;
 
 // Fields
-const fieldHeight = 20;
+const fieldHeight = 20.0;
 const nameFieldWidth = blockWidth * 0.65;
 const typeFieldWidth = blockWidth - nameFieldWidth;
 const fieldFontSize = fieldHeight * 0.6;
@@ -33,10 +33,11 @@ function EntityBlock({entity, onClick, ...props}) {
     const fieldsHeight = (entity.fields?.length ?? 0) * fieldHeight;
 
     if(jsonView) {
-      const properties = Object.keys(entity.fields[0]).length;
+      // const properties = Object.keys(entity.fields[0]).length;
+      const properties = 2;
       const fields = entity.fields.length;
       const lines = 2 + (fields * (2 + properties));
-      return lines * (fieldHeight + 3);
+      return headerHeight + (lines * fieldFontSize) + (verticalPadding * 2);
     } else {
       return headerHeight + fieldsHeight + (verticalPadding * 2);
     }
@@ -109,24 +110,22 @@ function EntityBlock({entity, onClick, ...props}) {
       <>
         {
           jsonView
-            ?
-              <Text 
-                x={horizontalPadding} y={yPosition + verticalPadding}
-                text={JSON.stringify(entity.fields, null, 2)}
-                width={blockWidth - (horizontalPadding * 2)}
-                // height={fieldHeight}
-                // sceneFunc={(context, shape) => {
-                //   context.fillStyle = 'rgb(255,255,204)';
-                //   context.fillRect(0,0,shape.width(),shape.height());
-                // }}
-                fontSize={fieldFontSize}
-                strokeWidth={2}
-                strokeEnabled={true}
-                verticalAlign='middle'
-              />
-            :
-         
-          (entity?.fields ?? []).map((field, index) => {
+          ?
+            <Text 
+              x={horizontalPadding} y={yPosition + verticalPadding}
+              text={JSON.stringify(entity.fields, null, 2)}
+              width={blockWidth - (horizontalPadding * 2)}
+              // height={fieldHeight}
+              // sceneFunc={(context, shape) => {
+              //   context.fillStyle = 'rgb(255,255,204)';
+              //   context.fillRect(0,0,shape.width(),shape.height());
+              // }}
+              fontSize={fieldFontSize}
+              strokeWidth={2}
+              strokeEnabled={true}
+              verticalAlign='middle'
+            />
+          : (entity?.fields ?? []).map((field, index) => {
             yPosition += index === 0 ? verticalPadding : fieldHeight;
 
             return <>
