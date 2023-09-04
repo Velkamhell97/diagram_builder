@@ -45,6 +45,7 @@ function DiagramBuilder () {
   const [entity, setEntity] = useState({'type': "string"});
   const [entities, setEntities] = useState([]);
   const [entityFields, setEntityFields] = useState([]);
+  const [entityForm, setEntityForm] = useState({});
 
   const size = {width: 180, height: 200};
   const radius = 100;
@@ -87,7 +88,7 @@ function DiagramBuilder () {
 
   const closeModal = () => {
     setEntity({});
-    setEntityFields([]);
+    setEntityForm({});
     setShowModal(false);
   }
   
@@ -100,10 +101,7 @@ function DiagramBuilder () {
       return;
     }
 
-    console.log(clickedOnEmpty);
-
     if(clickedOnEmpty) {
-      console.log('entre');
       const point = {x: e.evt.offsetX, y: e.evt.offsetY};
       setLine({from: {x: point.x - 10, y: point.y - 10}, to: {x: point.x, y: point.y}});
     }
@@ -247,75 +245,56 @@ function DiagramBuilder () {
             {
               entities.map((entity) => {
                 return <EntityBlock
-                  key={entity.name} 
-                  id={entity.name}
+                  key={entity.id} 
+                  id={entity.id}
                   entity={entity}
-                  x={100}
-                  y={100}
+                  x={100} y={100}
+                  onClick={() => {
+                    setEntity(entity);
+                    setEntityFields(entity.fields);
+                    setShowModal(true);
+                  }}
                 />
               })
             }
-            
-
-            {/* {line && (
-              <Line
-                stroke="red"
-                strokeWidth={10}
-                points={[line.from.x, line.from.y, line.to.x, line.to.y]}
-              />
-            )} */}
-
-          {/* 
-            Rectangulo () 
-              Header (x, 30)
-                Titulo ()
-              Campos
-                Nombre(100)
-
-          */}
-          
-
-           
           </Layer>
         </Stage> 
       </Canvas>
 
       <Modal show={showModal} onHide={closeModal} centered size="lg">
         <Modal.Header closeButton>
-         <Form.Control  style={{border: 0, boxShadow: "none", fontWeight: "bold", fontSize: 18}} autoFocus type="name" placeholder="Mi entidad" onChange={(event) => {
-            setEntity({...entity, 'name': event.target.value})
-          }} />
+          <Form.Control 
+            value={entity.name ?? ""}
+            style={{border: 0, boxShadow: "none", fontWeight: "bold", fontSize: 18}} 
+            autoFocus={!entity.id} type="name" placeholder="Mi entidad" 
+            onChange={(event) => {
+              setEntity({...entity, 'name': event.target.value})
+            }} 
+          />
         </Modal.Header>
+
         <Modal.Body>
           <BContainer>
             <Row>
               <Col>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                   <Form.Label>Nombre del campo</Form.Label>
-                  <Form.Control value={entity.fieldName ?? ""} placeholder="" onChange={(event) => {
-                    setEntity({...entity, 'fieldName': event.target.value})
+                  <Form.Control autoFocus={entity.id} value={entityForm.name ?? ""} onChange={(event) => {
+                    setEntityForm({...entityForm, 'name': event.target.value})
                   }} />
                 </Form.Group>
               </Col>
               <Col>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                   <Form.Label>Tipo</Form.Label>
-                  <Form.Select value={entity.fieldType ?? "string"} aria-label="Default select example" onChange={(event) => {
-                    setEntity({...entity, 'fieldType': event.target.value})
+                  <Form.Select value={entityForm.type ?? "string"} onChange={(event) => {
+                    setEntityForm({...entityForm, 'type': event.target.value})
                   }}>
-                    <option value="string" selected>String</option>
+                    <option value="string">String</option>
                     <option value="integer">Integer</option>
                     <option value="boolean">Boolean</option>
                   </Form.Select>
                 </Form.Group> 
-              </Col>
-              <Col>
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                  <Form.Label>Valor</Form.Label>
-                  <Form.Control value={entity.fieldValue ?? ""} type="value" placeholder="" onChange={(event) => {
-                    setEntity({...entity, 'fieldValue': event.target.value})
-                  }} />
-                </Form.Group>
               </Col>
             </Row>
             
@@ -329,50 +308,44 @@ function DiagramBuilder () {
               <Col>
                 <h6>Tipo</h6>
               </Col>
-              <Col>
-                <h6>Valor</h6>
-              </Col>
             </Row>
             {
-              entityFields.map((entityField) => {
-                return <Row>
+              (entity?.fields ?? []).map((entityField) => {
+                return <Row key={entityField.name}>
                   <Col>
                     {entityField.name}
                   </Col>
                   <Col>
                     {entityField.type}
                   </Col>
-                  <Col>
-                    {entityField.value}
-                  </Col>
                 </Row>
               })
             }
           </BContainer>
         </Modal.Body>
+
         <Modal.Footer>
           <Button variant="primary" onClick={() => {
-            setEntityFields([
-              ...entityFields, 
-              {
-                'name': entity.fieldName,
-                'type': entity.fieldType ?? "string", 
-                'value': entity.fieldValue
-              }
-            ]);
-            setEntity({'name': entity.name});
+            const field = {
+              'name': entityForm.name,
+              'type': entityForm.type ?? "string", 
+            }
+            
+            setEntity({...entity, fields: [...(entity.fields ?? []), field]});
+
+            setEntityForm({});
           }}>
             Agregar atributo
           </Button>
           <Button variant="primary" onClick={() => {
-            setEntityFields([]);
-            setEntities([
-              ...entities, 
-              {
-                'name': entity.name,
-                'fields': entityFields
-              }
-            ])
+            if(entity.id) {
+              setEntities(entities.map(value => {
+                return entity.id === value.id ? entity : value;
+              }));
+            } else {
+              setEntities([...entities, {...entity, 'id': uuidv4()}])
+            }
+            
             setShowModal(false);
           }}>
             Guardar cambios
