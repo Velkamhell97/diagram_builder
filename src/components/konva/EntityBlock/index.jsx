@@ -10,6 +10,7 @@ const minBlockHeight = 200;
 const horizontalPadding = 10;
 const verticalPadding = 10;
 const fieldSpacing = 10;
+const dividerHeight = 20.0;
 
 // Header
 const headerHeight = minBlockHeight * 0.2;
@@ -25,26 +26,21 @@ const fieldFontSize = fieldHeight * 0.6;
 
 
 function EntityBlock({entity, onClick, ...props}) {
-  const [jsonView, setJsonView] = useState(false);
+  let yPosition = headerHeight;
 
-  const [image] = useImage("https://i.postimg.cc/brsnx6Dz/icons8-curly-brackets-50.png");
-
-  const blockHeight = useMemo(() => {
+  const [fieldsHeight, methodsHeight , blockHeight] = useMemo(() => {
     const fieldsHeight = (entity.fields?.length ?? 0) * fieldHeight;
 
-    if(jsonView) {
-      // const properties = Object.keys(entity.fields[0]).length;
-      const properties = 2;
-      const fields = entity.fields.length;
-      const lines = 2 + (fields * (2 + properties));
-      return headerHeight + (lines * fieldFontSize) + (verticalPadding * 2);
-    } else {
-      return headerHeight + fieldsHeight + (verticalPadding * 2);
-    }
-    // return Math.min(fieldsHeight, minBlockHeight);
-  }, [entity, jsonView]);
+    const methodsHeight = (entity.methods?.length ?? 0) * fieldHeight;
 
-  let yPosition = headerHeight;
+    const blockHeight = headerHeight + (verticalPadding * 2) + fieldsHeight + methodsHeight + dividerHeight;
+
+    // return headerHeight + fieldsHeight + (verticalPadding * 2);
+    
+    // return Math.min(fieldsHeight, minBlockHeight);
+
+    return [fieldsHeight, methodsHeight, blockHeight];
+  }, [entity]);
 
   return(
     <Group
@@ -54,10 +50,7 @@ function EntityBlock({entity, onClick, ...props}) {
       draggable="true"
       width={blockWidth}
       height={blockHeight}
-      // onClick={onClick}
-      onClick={() => {
-        setJsonView(!jsonView);
-      }}
+      onClick={onClick}
       // {...props}
     >
       <Rect
@@ -97,131 +90,102 @@ function EntityBlock({entity, onClick, ...props}) {
           wrap="none"
           ellipsis={true}
         />
-
-        <Image
-          x={blockWidth - 30}
-          y={(headerHeight - 20) / 2}
-          width={20}
-          height={20}
-          image={image}
-        />
       </>
 
-      <>
-        {
-          jsonView
-          ?
+      
+      {
+        (entity?.fields ?? []).map((field, index) => {
+          yPosition += index === 0 ? verticalPadding : fieldHeight;
+
+          return <>
             <Text 
-              x={horizontalPadding} y={yPosition + verticalPadding}
-              text={JSON.stringify(entity.fields, null, 2)}
-              width={blockWidth - (horizontalPadding * 2)}
-              // height={fieldHeight}
-              // sceneFunc={(context, shape) => {
-              //   context.fillStyle = 'rgb(255,255,204)';
-              //   context.fillRect(0,0,shape.width(),shape.height());
-              // }}
+              x={horizontalPadding} y={yPosition}
+              text={field.name}
+              width={nameFieldWidth - horizontalPadding}
+              height={fieldHeight}
+              
               fontSize={fieldFontSize}
               strokeWidth={2}
               strokeEnabled={true}
               verticalAlign='middle'
             />
-          : (entity?.fields ?? []).map((field, index) => {
-            yPosition += index === 0 ? verticalPadding : fieldHeight;
 
-            return <>
-              <Text 
-                x={horizontalPadding} y={yPosition}
-                text={field.name}
-                width={nameFieldWidth - horizontalPadding}
-                height={fieldHeight}
-                // sceneFunc={(context, shape) => {
-                //   context.fillStyle = 'rgb(255,255,204)';
-                //   context.fillRect(0,0,shape.width(),shape.height());
-                // }}
-                fontSize={fieldFontSize}
-                strokeWidth={2}
-                strokeEnabled={true}
-                verticalAlign='middle'
-              />
+            <Text 
+              x={nameFieldWidth} y={yPosition}
+              align='right'
+              text={field.type} 
+              width={typeFieldWidth - horizontalPadding}   
+              height={fieldHeight}
+              fontSize={fieldFontSize - 1}
+              fontStyle="italic"
+              fill='gray'
+              verticalAlign='middle'
+            />
+          </>
+        })
+      } 
 
-              <Text 
-                x={nameFieldWidth} y={yPosition}
-                align='right'
-                text={field.type} 
-                width={typeFieldWidth - horizontalPadding}   
-                height={fieldHeight}
-                fontSize={fieldFontSize - 1}
-                fontStyle="italic"
-                fill='gray'
-                verticalAlign='middle'
-              />
-            </>
-          })
-        }
-      </>
+      {
+        (entity.methods.length) && 
+        <>
+          <Line
+            x={0} y={blockHeight - verticalPadding - methodsHeight - dividerHeight / 2}
+            points={[0, 0, blockWidth, 0]}
+            stroke="#bdbdbd"
+            strokeWidth={1.0}
+          />
+          
+          {
+            (entity?.methods ?? []).map((method, index) => {
+              yPosition += index === 0 ? (fieldHeight + dividerHeight) : fieldHeight;
 
-      {/* <Text
-        text="int"
-        align="right"
-        x={-5}
-        y={30}
-        width={100}
-        fontStyle="italic"
-        fill="gray"
-        height={30}
-      />
+              return <>
+                <Text 
+                  x={horizontalPadding} y={yPosition}
+                  text={`${method.name}()`}
+                  width={nameFieldWidth - horizontalPadding}
+                  height={fieldHeight}
+                  
+                  fontSize={fieldFontSize}
+                  strokeWidth={2}
+                  strokeEnabled={true}
+                  verticalAlign='middle'
+                />
 
-      <Text
-        text="nombre"
-        align="left"
-        x={5}
-        y={30 + 20}
-        height={30}
-      />
-
-      <Text
-        text="int"
-        align="right"
-        x={-5}
-        y={30 + 20}
-        width={100}
-        fontStyle="italic"
-        fill="gray"
-        height={30}
-      />
-
-      <Text
-        text="activo"
-        align="left"
-        x={5}
-        y={30 + 40}
-        height={30}
-      />
-
-      <Text
-        text="bool"
-        align="right"
-        x={-5}
-        y={30 + 40}
-        width={100}
-        fontStyle="italic"
-        fill="gray"
-        height={30}
-      />
- */}
-
-      {/* {props.selected && (
-        <Transformer
-          ref={transformerRef}
-          rotateEnabled={false}
-          flipEnabled={false}
-          boundBoxFunc={(oldBox, newBox) => {
-            return newBox;
-          }}
-        />
-      )} */}
+                <Text 
+                  x={nameFieldWidth} y={yPosition}
+                  align='right'
+                  text={"void"} 
+                  width={typeFieldWidth - horizontalPadding}   
+                  height={fieldHeight}
+                  fontSize={fieldFontSize - 1}
+                  fontStyle="italic"
+                  fill='gray'
+                  verticalAlign='middle'
+                />
+              </>
+            })
+          } 
+        </>
+      }
     </Group>
   );
 }
 
 export default EntityBlock;
+
+// sceneFunc={(context, shape) => {
+//   context.fillStyle = 'rgb(255,255,204)';
+//   context.fillRect(0,0,shape.width(),shape.height());
+// }}
+
+ {/* {props.selected && (
+      <Transformer
+        ref={transformerRef}
+        rotateEnabled={false}
+        flipEnabled={false}
+        boundBoxFunc={(oldBox, newBox) => {
+          return newBox;
+        }}
+      />
+    )} */}

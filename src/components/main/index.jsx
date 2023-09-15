@@ -2,7 +2,7 @@ import { useRef, useState, useMemo } from "react";
 import { Circle, Group, Layer, Line, Rect, Stage, Text } from "react-konva";
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
-import BContainer from 'react-bootstrap/Container';
+import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -13,9 +13,10 @@ import EntityBlock from "../konva/EntityBlock";
 import { EditableText } from "../konva/EditableText/KonvaEditableText";
 import ToolsBar from './SideBar';
 import { KonvaEditableTextInput } from "../konva/EditableText/KonvaEditableTextInput";
+import { Tab, Tabs } from "react-bootstrap";
 
 
-const Container = styled.div`
+const RootContainer = styled.div`
   display: flex;
   height: 100%;
 `
@@ -42,7 +43,7 @@ function DiagramBuilder () {
 
   // Modal
   const [showModal, setShowModal] = useState(false);
-  const [entity, setEntity] = useState({'type': "string"});
+  const [entity, setEntity] = useState({});
   const [entities, setEntities] = useState([]);
   const [entityForm, setEntityForm] = useState({});
 
@@ -90,8 +91,9 @@ function DiagramBuilder () {
     setEntityForm({});
     setShowModal(false);
   }
-  
 
+  const isEntityEmpty = () => Object.keys(entityForm).length === 0;
+  
   const onMouseDown = (e) => {
     const clickedOnEmpty = e.target === e.target.getStage();
     
@@ -202,8 +204,9 @@ function DiagramBuilder () {
     )
   }
 
+
   return(
-    <Container>
+    <RootContainer>
       <ToolsBar 
         onClickEntity={() => {
           setShowModal(true);
@@ -272,69 +275,166 @@ function DiagramBuilder () {
         </Modal.Header>
 
         <Modal.Body>
-          <BContainer>
-            <Row>
-              <Col>
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                  <Form.Label>Nombre del campo</Form.Label>
-                  <Form.Control autoFocus={entity.id} value={entityForm.name ?? ""} onChange={(event) => {
-                    setEntityForm({...entityForm, 'name': event.target.value})
-                  }} />
-                </Form.Group>
-              </Col>
-              <Col>
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                  <Form.Label>Tipo</Form.Label>
-                  <Form.Select value={entityForm.type ?? "string"} onChange={(event) => {
-                    setEntityForm({...entityForm, 'type': event.target.value})
-                  }}>
-                    <option value="string">String</option>
-                    <option value="integer">Integer</option>
-                    <option value="boolean">Boolean</option>
-                  </Form.Select>
-                </Form.Group> 
-              </Col>
-            </Row>
-            
-          </BContainer>
-
-          <BContainer>
-            <Row>
-              <Col>
-                <h6>Nombre</h6>
-              </Col>
-              <Col>
-                <h6>Tipo</h6>
-              </Col>
-            </Row>
-            {
-              (entity?.fields ?? []).map((entityField) => {
-                return <Row key={entityField.name}>
+          <Tabs id="tabs" className="mb-3" >
+            <Tab eventKey="home" title="Propiedades">
+              {/* Formulario para propiedades */}
+              <Container>
+                <Row>
                   <Col>
-                    {entityField.name}
+                    <Form.Group className="mb-3">
+                      <Form.Label>Nombre del campo</Form.Label>
+                      <Form.Control autoFocus={entity.id} value={entityForm.name ?? ""} onChange={(event) => {
+                        setEntityForm({...entityForm, 'name': event.target.value})
+                      }} />
+                    </Form.Group>
                   </Col>
+
                   <Col>
-                    {entityField.type}
+                    <Form.Group className="mb-3">
+                      <Form.Label>Tipo</Form.Label>
+                      <Form.Select value={entityForm.type ?? "string"} onChange={(event) => {
+                        setEntityForm({...entityForm, 'type': event.target.value})
+                      }}>
+                        <option value="string">String</option>
+                        <option value="integer">Integer</option>
+                        <option value="boolean">Boolean</option>
+                      </Form.Select>
+                    </Form.Group> 
+                  </Col>
+
+                  <Col md="1">
+                    <Form.Group className="mb-3">
+                      <Form.Label>PK</Form.Label>
+                      <Form.Check 
+                        type="checkbox" 
+                        checked={isEntityEmpty() ? false : (entityForm.pk ?? false)} 
+                        onChange={(event) => setEntityForm({...entityForm, 'pk': event.target.checked})} 
+                      />
+                    </Form.Group> 
+                  </Col>
+
+                  <Col md="1">
+                    <Form.Group className="mb-3">
+                      <Form.Label>NN</Form.Label>
+                      <Form.Check 
+                        type="checkbox" 
+                        checked={isEntityEmpty() ? false : (entityForm.nn ?? false)} 
+                        onChange={(event) => setEntityForm({...entityForm, 'nn': event.target.checked})} 
+                      />
+                    </Form.Group> 
                   </Col>
                 </Row>
-              })
-            }
-          </BContainer>
+              </Container>
+              
+              {/* Propiedades */}
+              <Container>
+                <Row>
+                  <Col>
+                    <h6>Nombre</h6>
+                  </Col>
+                  <Col>
+                    <h6>Tipo</h6>
+                  </Col>
+                  <Col md="1">
+                    <h6>PK</h6>
+                  </Col>
+                  <Col md="1">
+                    <h6>NN</h6>
+                  </Col>
+                </Row>
+                {
+                  (entity?.fields ?? []).map((field) => {
+                    return <Row key={field.name}>
+                      <Col>
+                        {field.name}
+                      </Col>
+                      <Col>
+                        {field.type}
+                      </Col>
+                      <Col md="1">
+                        <Form.Check type="checkbox" readOnly checked={field.pk} />
+                      </Col>
+                      <Col md="1">
+                        <Form.Check type="checkbox" readOnly checked={field.nn}/>
+                      </Col>
+                    </Row>
+                  })
+                }
+              </Container>  
+            </Tab>
+            
+            <Tab eventKey="profile" title="Metodos">
+              {/* Formulario para metodos */}
+              <Container>
+                <Row>
+                  <Col>
+                    <Form.Group className="mb-3" controlId="formBasicEmail">
+                      <Form.Label>Nombre del metodo</Form.Label>
+                      <Form.Control value={entityForm.method?.name ?? ""} onChange={(event) => {
+                        setEntityForm({...entityForm, method: {name: event.target.value}});
+                      }} />
+                    </Form.Group>
+                  </Col>
+
+                  {/* <Col>
+                    <Form.Group className="mb-3" controlId="formBasicEmail">
+                      <Form.Label>Tipo</Form.Label>
+                      <Form.Select value={entityForm.type ?? "string"} onChange={(event) => {
+                        setEntityForm({...entityForm, 'type': event.target.value})
+                      }}>
+                        <option value="string">String</option>
+                        <option value="integer">Integer</option>
+                        <option value="boolean">Boolean</option>
+                      </Form.Select>
+                    </Form.Group> 
+                  </Col> */}
+                </Row>
+              </Container>
+              
+              {/* Propiedades */}
+              <Container>
+                <Row>
+                  <Col>
+                    <h6>Nombre</h6>
+                  </Col>
+                </Row>
+                {
+                  (entity?.methods ?? []).map((method) => {
+                    return <Row key={method.name}>
+                      <Col>
+                        {method.name}()
+                      </Col>
+                    </Row>
+                  })
+                }
+              </Container>  
+            </Tab>
+          </Tabs>
+         
         </Modal.Body>
 
         <Modal.Footer>
           <Button variant="primary" onClick={() => {
             const field = {
               'name': entityForm.name,
-              'type': entityForm.type ?? "string", 
+              'type': entityForm.type ?? "string",
+              'pk': entityForm.pk ?? false,
+              'nn': entityForm.nn ?? false, 
             }
-            
-            setEntity({...entity, fields: [...(entity.fields ?? []), field]});
+
+            const method = entityForm.method;
+
+            setEntity({
+              ...entity, 
+              ...(field.name) && {fields: [...(entity.fields ?? []), field]},
+              ...(method) && {methods: [...(entity.methods ?? []), method]}
+            });
 
             setEntityForm({});
           }}>
             Agregar atributo
           </Button>
+
           <Button variant="primary" onClick={() => {
             if(entity.id) {
               setEntities(entities.map(value => {
@@ -352,7 +452,7 @@ function DiagramBuilder () {
           </Button>
         </Modal.Footer>
       </Modal>
-    </Container>
+    </RootContainer>
   )
 }
 
